@@ -34,19 +34,24 @@ def menu():
                 
                 add_expense(category, amount, description, time)
                    
-                        
-
-                        
+                               
 
         elif choice == '2':
             view_expenses()
+
         elif choice == '3':
             show_total_spending()
 
         elif choice == '4':
             filter_by_cat()
+            
         elif choice == '5':
             edit_expense()
+        elif choice== '6':
+            delete_expense()
+
+        elif choice=='7':
+            return
 
 
 def load_data():
@@ -111,6 +116,8 @@ def dump_data(user_data: list):
 def empty_entry():
     if len(user_data) == 0:
         return True
+    else:
+        return False
 
 
 def view_expenses():
@@ -144,28 +151,41 @@ def show_total_spending():
         print(f'- ${total}')
 
 def view_all_categories():
+    num = 1
+
     if not empty_entry():
         
         print('-'*40)
         print(' '*15, 'Categories: ')
         for dict in user_data:
             cat = list(dict.keys())[0]
-            print(f'- {cat}')
+            print(f'{num}. {cat}')
+            num +=1
+
+    else:
+        print("There's no entry at the moment")
+        return
+
             
 def view_category_entry(category):
     num = 1
-    print(f'---------------------- {category} entry ----------------------\n')
-    print("   "+format("Amount", '<10') + '| ' + format("Description", '<20') + '| ' + format("Time of entry", '<10') )
+   
     cat_val = []
-    for dict in user_data:
-        if category == list(dict.keys())[0]:
+    for dic in user_data:
+        if category == list(dic.keys())[0]:
+            print(f'---------------------- {category} entry ----------------------\n')
+            print("   "+format("Amount", '<10') + '| ' + format("Description", '<20') + '| ' + format("Time of entry", '<10') )
         
-            entries = dict[category] 
+            entries = dic[category] 
             for val in entries:
                 print(f"{num}. {val['amount']:<10}| {val['description']:<20}| {val['date/time']:<10}")
                 num+=1
-        cat_val = list(dict.values())[0]
-        break
+            cat_val = list(dic.values())[0]
+            
+            return cat_val
+        else:
+            continue
+    print('\nThe categgory you entered does not exists...')
     return cat_val
                    
         
@@ -175,10 +195,10 @@ def filter_by_cat():
 
     category = input('\nSelect a category: ')
     print('\n')
-    for dict in user_data:
-        if category == list(dict.keys())[0]:
+    for dic in user_data:
+        if category == list(dic.keys())[0]:
             print(f'\n--------------- {category} ------------------')
-            for val in list(dict.values())[0]:
+            for val in list(dic.values())[0]:
                 print(f'- Amount: ${val['amount']}')
                 print(f'- Description: {val['description']}')
                 print(f'- Date/time: {val['date/time']}')
@@ -197,7 +217,7 @@ def edit_expense():
     except:
         print('invalid entry')
         return
-    field = input("input the particular field you'd like to modify: ")
+    field = input("input the category field you'd like to modify: ")
     new_entry = input('Enter your new entry: ')
     # entries = []
     
@@ -208,28 +228,53 @@ def edit_expense():
         entries[entry_index-1][field] = new_entry
         dump_data(user_data)
         # print('new entry: ',entries)
-
         
         print('Entry has been successfully edited')
         return
     else:
         print('You selected a non existent entry')
         return
+
+
+def delete_expense():
+
+    option = input("select delete format\n1. By category\n2. By category entry\nchoice: ")
+    if option == '1':
+        view_all_categories()
+
+        try:
+            entry_index = int(input("\nChoose the category of expense you'd like to delete by it's numbering: "))
+        except:
+            print('invalid entry')
+            return
+        if entry_index >0 and entry_index <= len(user_data): 
+        
+            exp = user_data.pop(entry_index-1)
+            print(f"\nCategory {list(exp.keys())[0]} has been succesfully deleted")
+            dump_data(user_data)
+
+        else:
+            print('You selected a non existent entry')
+            return
+
+    elif option == '2':
+        view_all_categories()
+
+        category = input('\n Choose a category among the above: ')
+
+        cat_entry = view_category_entry(category)
+        if cat_entry != []:
+            try:
+                entry_index = int(input("\nChoose an entry by it's numbering: "))
+            except:
+                print('invalid entry')
+                return
+            if entry_index >0 and entry_index <= len(cat_entry):
+                val = cat_entry.pop(entry_index-1) 
+                print('Entry deletion succesfull')
+                dump_data(user_data)
     
-        
-        
-        
-
-
-
-
-
-            
-
-
-        
-
-
+    
 
 menu()
 
