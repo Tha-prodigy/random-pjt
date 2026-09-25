@@ -8,25 +8,33 @@ def menu():
 
         choice = input('Choose an option: ')
         if choice == '1':
-
+            categories = []
+            
+            category = input('Input category: ')
+            
             for dict in user_data:
-                category = input('Input category: ')
+                categories.append( list(dict.keys())[0])
+                
+                
+            if category in categories:
+                
+                print('-'*40)
+                print(f'category {category} already exists')
+                option = input('Would you like to add an entry to it ? y/n: ')
+                if option == 'y':
+                    amount, description, time = request_input()
 
-                if category != list(dict.keys())[0]:
-                   amount, description, time = request_input()
-                    
-                   add_expense(category, amount, description, time)
-                   break
-                    
-                else:
-                    print('-'*40)
-                    print(f'category {category} already exists')
-                    option = input('Would you like to add an entry to it ? y/n: ')
-                    if option == 'y':
-                        amount, description, time = request_input()
-
-                        add_expense_entry(category, amount, description, time)
-                        break
+                    add_expense_entry(category, amount, description, time)
+                
+                
+            else:
+                # print(list(dict.keys())[0]) 
+                                    
+                amount, description, time = request_input()
+                
+                add_expense(category, amount, description, time)
+                   
+                        
 
                         
 
@@ -37,6 +45,8 @@ def menu():
 
         elif choice == '4':
             filter_by_cat()
+        elif choice == '5':
+            edit_expense()
 
 
 def load_data():
@@ -47,19 +57,26 @@ def load_data():
         return []
 
 user_data = load_data()
-# print(user_data)
-expense = {}
+print(user_data)
 
 def add_expense(category, amount, description, date):
+    expense = {}
+    
     expense_data = []
     expense_data.append({'amount': amount, 'description': description, 'date/time': str(date)})
     expense[category] = expense_data
     user_data.append(expense)
 
     dump_data(user_data)
+    
 
 def request_input():
-    amount = input('Enter amount: ')
+    try:
+        amount = int(input('Enter amount: '))
+    except:
+        print('invalid amount entry')
+        return
+    
     description = input('enter a description: ')
     time_choice = input('would you like to log in the current time or a time of your choosing. y/n? ')
     if time_choice == 'n':
@@ -72,6 +89,8 @@ def request_input():
     return amount, description, time
 
 def add_expense_entry(category, amount, description, date):
+    expense = {}
+    
     for dict in user_data:
         if category == list(dict.keys())[0]:
             expense_data = list(dict.values())[0]
@@ -98,9 +117,14 @@ def view_expenses():
     if not empty_entry():
     
         for diction in user_data:
-            for key, val in diction.items():
-                print(f'\n====================== category: {key} =====================\n')
-                print(f'amount: {val['amount']}\ndescription: {val['description']}\nDate of entry: {val['date/time']}\n')
+            category = list(diction.keys())[0]
+            category_val = list(diction.values())[0]
+            print(f'\n====================== category: {category} =====================\n')
+            for val in category_val:
+                print(f"- Amount: ${val["amount"]}\n- Description: {val["description"]}\n- Date/time: {val["date/time"]} ")
+                print('-'*40)       
+                
+                
     else:
         print("There's no entry at the moment")
 
@@ -112,19 +136,39 @@ def show_total_spending():
         print(' '*15, 'TOTAL SPENDING: ')
         total = 0
         for dict in user_data:
-            amount = list(dict.values())[0]['amount']
-            total+= int(amount)
-        print(f'${total}')
+            val_list = list(dict.values())[0]
+            for val in val_list:
+                total += int(val['amount'])
+                
+            
+        print(f'- ${total}')
 
 def view_all_categories():
-    if not empty_entry:
+    if not empty_entry():
+        
         print('-'*40)
         print(' '*15, 'Categories: ')
-        num = 1
         for dict in user_data:
             cat = list(dict.keys())[0]
-            print(f'{num}. {cat}')
-            num+=1
+            print(f'- {cat}')
+            
+def view_category_entry(category):
+    num = 1
+    print(f'---------------------- {category} entry ----------------------\n')
+    print("   "+format("Amount", '<10') + '| ' + format("Description", '<20') + '| ' + format("Time of entry", '<10') )
+    cat_val = []
+    for dict in user_data:
+        if category == list(dict.keys())[0]:
+        
+            entries = dict[category] 
+            for val in entries:
+                print(f"{num}. {val['amount']:<10}| {val['description']:<20}| {val['date/time']:<10}")
+                num+=1
+        cat_val = list(dict.values())[0]
+        break
+    return cat_val
+                   
+        
 
 def filter_by_cat():
     view_all_categories()
@@ -133,10 +177,48 @@ def filter_by_cat():
     print('\n')
     for dict in user_data:
         if category == list(dict.keys())[0]:
-            print(f'--------------- {category} ------------------')
-            print(f'- Amount: ${dict[category]['amount']}')
-            print(f'- Description: ${dict[category]['description']}')
-            print(f'- Date/time: ${dict[category]['date/time']}')
+            print(f'\n--------------- {category} ------------------')
+            for val in list(dict.values())[0]:
+                print(f'- Amount: ${val['amount']}')
+                print(f'- Description: {val['description']}')
+                print(f'- Date/time: {val['date/time']}')
+                print('--------------------------------------------')
+            return
+        else:
+            print('The category you entered does not exist')
+            return
+        
+def edit_expense():
+    view_all_categories()
+    category = input('\nSelect a category: ')
+    entries  = view_category_entry(category)
+    try:
+        entry_index = int(input("\nChoose an entry by it's numbering: "))
+    except:
+        print('invalid entry')
+        return
+    field = input("input the particular field you'd like to modify: ")
+    new_entry = input('Enter your new entry: ')
+    # entries = []
+    
+    print(entries)
+        
+    # print(entries)
+    if entry_index >0 and entry_index <= len(entries): 
+        entries[entry_index-1][field] = new_entry
+        dump_data(user_data)
+        # print('new entry: ',entries)
+
+        
+        print('Entry has been successfully edited')
+        return
+    else:
+        print('You selected a non existent entry')
+        return
+    
+        
+        
+        
 
 
 
